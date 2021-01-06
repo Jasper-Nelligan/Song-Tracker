@@ -9,26 +9,39 @@ namespace Song_Tracker
 {
     class Program
     {
-        static List<Entry> LoadJson()
+        static JsonRoot LoadJson()
         {
             using (StreamReader r = new StreamReader("song_list.json"))
             {
                 string json = r.ReadToEnd();
-                Root jsonroot = JsonConvert.DeserializeObject<Root>(json);
-                return jsonroot.entries;
+                JsonRoot jsonRoot = JsonConvert.DeserializeObject<JsonRoot>(json);
+                return jsonRoot;
             }
         }
-        
 
+        static void WriteJson(JsonRoot jsonRoot){
+            string jsonString = JsonConvert.SerializeObject(jsonRoot, Formatting.Indented);
+            System.IO.File.WriteAllText("song_list.json", jsonString);
+        }
+        
         static void Main(string[] args)
         {
-            List<Entry> entries = LoadJson();
-            foreach(Entry entry in entries){
-                Console.WriteLine(entry.ToString());
-            }
+            JsonRoot jsonRoot = LoadJson();
 
+            // Code for inserting new Entry and writing to Json:
             // DateTime today = DateTime.Now;
-            // Console.WriteLine(today.ToString("MM/dd/yyyy"));
+            //
+            // Song test = new Song("Hello", "Test");
+            // Song test2 = new Song("Hello2", "Test2");
+            // List<Song> songList = new List<Song>();
+            // songList.Add(test);
+            // songList.Add(test2);
+            // Entry newEntry = new Entry(today.ToString("MM/dd/yyyy"), songList);
+            // jsonRoot.Entries.Add(newEntry);
+            // foreach(Entry entry in jsonRoot.Entries){
+            //     Console.WriteLine(entry.ToString());
+            // }
+            // WriteJson(jsonRoot);
 
             Console.WriteLine("\nHello! Welcome to Song Tracker.\n");
             while (true)
@@ -96,30 +109,43 @@ namespace Song_Tracker
     }
  
     public class Song{
-        public string title { get; set; } 
-        public string artist { get; set; } 
+        public string Title { get; private set; }
+        public string Artist { get; private set; }
+
+        public Song(string title, string artist){
+            Title = title;
+            Artist = artist;
+        }
     }
 
     public class Entry{
-        public string date { get; set; } 
-        public List<Song> songs { get; set; }
+        public string Date { get; } 
+        public List<Song> Songs { get; }
 
+        public Entry(string date, List<Song> songs){
+            Date = date;
+            Songs = songs;
+        }
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder(this.date + "\n");
+            StringBuilder sb = new StringBuilder(this.Date + "\n");
 
             int i = 1;
-            foreach(Song song in this.songs)
+            foreach(Song song in this.Songs)
             {
-                sb.AppendFormat($"{i}. {song.title} by {song.artist}\n");
+                sb.AppendFormat($"{i}. {song.Title} by {song.Artist}\n");
                 i++;
             }
             return sb.ToString();
         }
     }
 
-    public class Root{
-        public List<Entry> entries { get; set; }
+    public class JsonRoot{
+        public List<Entry> Entries { get; set; }
+
+        public void Root(List<Entry> entries){
+            Entries = entries;
+        }
     } 
 }
