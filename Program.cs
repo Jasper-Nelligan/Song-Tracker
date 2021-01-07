@@ -94,9 +94,12 @@ namespace Song_Tracker
         /// <returns> The new modified entry </returns>
         static Entry CreateNewEntry(Entry prevEntry)
         {
+            Entry newEntry = null;
             while (true)
             {
-                Console.WriteLine($"\nYour latest entry from {prevEntry.Date} was:");
+                if (prevEntry.Songs.Count > 0){
+                    Console.WriteLine($"\nYour latest entry from {prevEntry.Date} was:");
+                }
                 Console.WriteLine(prevEntry.ToString());
                 Console.WriteLine("What would you like to do? (input a number)\n");
                 Console.WriteLine("1 - Insert song into list\n2 - Delete song from list\n3 - Save new entry and go back\n");
@@ -104,14 +107,18 @@ namespace Song_Tracker
                 switch(input)
                 {
                     case "1":
-                        Entry newEntry = AddNewSong(prevEntry);
+                        newEntry = AddNewSong(prevEntry);
                         if (newEntry != null)
                         {
                             prevEntry = newEntry;
                         }
                         continue;
                     case "2":
-                        DelSong(prevEntry);
+                        newEntry = DelSong(prevEntry);
+                        if (newEntry != null)
+                        {
+                            prevEntry = newEntry;
+                        }
                         continue;
                     case "3":
                         break;
@@ -151,7 +158,7 @@ namespace Song_Tracker
                     }
                     int count = prevEntry.Songs.Count;
                     if (pos > count + 1){
-                        Console.WriteLine($"Position {count + 1} needs a song before " +
+                        Console.WriteLine($"\nPosition {count + 1} needs a song before " +
                                           $"position {pos}. Adding new song to position {count + 1}");
                         pos = count + 1;
                     }
@@ -171,12 +178,67 @@ namespace Song_Tracker
             }
             Entry newEntry = new Entry(DateTime.Now.ToString("MM/dd/yyyy"), songs);
 
+            Console.WriteLine($"\n{newSong.Title} by {newSong.Artist} was added to position {pos}.");
             return newEntry;
         }
 
+        /// <summary> Allows user to delete songs off their previous entry. 
+        /// Creates new entry in the process.
+        /// </summary>
+        /// <param name="prevEntry"> A copy of the last entry on file </param>
+        /// <returns> 
+        /// A new instance of Entry, null if user decides not to change anything.
+        /// </returns>
         static Entry DelSong(Entry prevEntry)
         {
-            return null;
+            if (prevEntry.Songs.Count == 0)
+            {
+                Console.WriteLine("\nError: no songs to delete.");
+                return null;
+            }
+
+            int pos = 0;
+            bool looping = true;
+            while (looping)
+            {
+                Console.WriteLine("\nWhat song would you like to delete?");
+                Console.WriteLine("(type in a number between 1 and 3, 4 to go back)\n");
+
+                try
+                {
+                    pos = int.Parse(Console.ReadLine());
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine($"\n{pos} is not a valid entry.");
+                    continue;
+                }
+                if (pos == 4)
+                {
+                    return null;
+                }
+                int count = prevEntry.Songs.Count;
+                if (pos >= count + 1)
+                {
+                    if (pos < 4){
+                        Console.WriteLine($"\nError: there is no song at position {pos}");
+                        continue;
+                    }
+                    else{
+                        Console.WriteLine($"\nError: position {pos} is out of range.");
+                        continue;
+                    }
+                }
+                looping = false;
+            }
+
+            List<Song> songs = prevEntry.Songs;
+            Song removedSong = songs[pos - 1];
+            songs.RemoveAt(pos - 1);
+            Entry newEntry = new Entry(DateTime.Now.ToString("MM/dd/yyyy"), songs);
+
+            Console.WriteLine($"\n{removedSong.Title} by {removedSong.Artist} was removed from the list.");
+            return newEntry;
         }
 
         /// <summary> Adds newEntry to jsonRoot and saves data to file </summary>
