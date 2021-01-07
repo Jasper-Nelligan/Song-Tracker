@@ -66,10 +66,19 @@ namespace Song_Tracker
                 switch(input)
                 {
                     case "1":
-                        Entry prevEntry = entries[entries.Count - 1];
+                        Entry prevEntry = null; 
+                        if (entries.Count > 0)
+                        {
+                            prevEntry = entries[entries.Count - 1];
+                        }
                         Entry newEntry = CreateNewEntry(prevEntry);
-                        SaveNewEntry(ref jsonRoot, in newEntry);
-                        Console.WriteLine("\nNew Entry has been saved.");
+                        if (newEntry != null && newEntry.Songs.Count > 0){
+                            SaveNewEntry(ref jsonRoot, in newEntry);
+                            Console.WriteLine("\nNew Entry has been saved.");
+                        }
+                        else{
+                            Console.WriteLine("\nThere must be at least 1 song in the list to create a new entry.");
+                        }
                         break;
                     case "2":
                         SearchFavourites();
@@ -97,11 +106,20 @@ namespace Song_Tracker
             Entry newEntry = null;
             while (true)
             {
-                if (prevEntry.Songs.Count > 0){
-                    Console.WriteLine($"\nYour latest entry from {prevEntry.Date} was:");
+                if ((prevEntry == null)){
+                    Console.WriteLine("\nHere you can create your first entry! Try inserting your favourite "
+                                     +"songs into the list.\n");
                 }
-                Console.WriteLine(prevEntry.ToString());
-                Console.WriteLine("What would you like to do? (input a number)\n");
+                else if (prevEntry.Songs.Count > 0){
+                    Console.WriteLine($"\nYour latest entry from {prevEntry.Date} was:");
+                    Console.WriteLine(prevEntry.ToString());
+                }
+                else{
+                    Console.WriteLine("\nYour previous entry was empty. Try adding some songs to it "
+                                     +"to create a new entry!\n");
+                }
+                
+                Console.WriteLine("What would you like to do? (input a number)");
                 Console.WriteLine("1 - Insert song into list\n2 - Delete song from list\n3 - Save new entry and go back\n");
                 var input = Console.ReadLine();
                 switch(input)
@@ -141,6 +159,9 @@ namespace Song_Tracker
         static Entry AddNewSong(Entry prevEntry)
         {
             int pos = 0;
+            if (prevEntry == null){
+                prevEntry = new Entry("",new List<Song>());
+            }
             if (prevEntry.Songs.Count > 0){
                 bool looping = true;
                 while (looping){
@@ -160,7 +181,10 @@ namespace Song_Tracker
                     if (pos > count + 1){
                         Console.WriteLine($"\nPosition {count + 1} needs a song before " +
                                           $"position {pos}. Adding new song to position {count + 1}");
-                        pos = count + 1;
+                        pos = count;
+                    }
+                    else{
+                        pos -= 1;
                     }
                     looping = false;
                 }
@@ -172,7 +196,7 @@ namespace Song_Tracker
 
             List<Song> songs = prevEntry.Songs;
             Song newSong = new Song(title, artist);
-            songs.Insert(pos - 1, newSong);
+            songs.Insert(pos, newSong);
             if (songs.Count > 3){
                 songs.RemoveAt(3);
             }
@@ -191,7 +215,7 @@ namespace Song_Tracker
         /// </returns>
         static Entry DelSong(Entry prevEntry)
         {
-            if (prevEntry.Songs.Count == 0)
+            if (prevEntry == null || prevEntry.Songs.Count == 0)
             {
                 Console.WriteLine("\nError: no songs to delete.");
                 return null;
@@ -276,7 +300,7 @@ namespace Song_Tracker
                              +"favourite songs throughout time.\nFrom the main menu, choose \"Add new entry\" "
                              +"to create a new favourite songs list. Each new entry will be\ngiven a time stamp "
                              +"so it can be searched by date created. Choose \"Search previous favourite songs\" "
-                             +"from\nthe main menu to view past favourite song lists.\n");
+                             +"from\nthe main menu to view past favourite song lists.");
         }
     }
  
