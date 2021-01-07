@@ -10,8 +10,19 @@ namespace Song_Tracker
 {
     class Program
     {
+        /// <summary> Loads in song list data from song_list.json </summary>
+        /// <returns> 
+        /// Instance of JsonRoot, which contains all data from file.
+        /// </returns>
+        /// <exception cref="FileNotFoundException">
+        /// Raised if song_list.json does not exist in the program directory.
+        /// <exception>
+        /// <exception cref="JsonException">
+        /// Raised if there was an error reading in data from song_list.json.
+        /// </exception>
         static JsonRoot LoadJson()
         {
+            
             using (StreamReader r = new StreamReader("song_list.json"))
             {
                 string json = r.ReadToEnd();
@@ -20,14 +31,30 @@ namespace Song_Tracker
             }
         }
 
+        /// <summary> Writes data from jsonRoot into song_list.json </summary>
+        /// <param name="jsonRoot">
+        /// The instance of jsonRoot containing the data to write to file.
+        /// </param>
+        /// <exception cref="JsonException">
+        /// Raised if there was an error writing data to song_list.json.
+        /// </exception>
         static void WriteJson(JsonRoot jsonRoot){
             string jsonString = JsonConvert.SerializeObject(jsonRoot, Formatting.Indented);
             System.IO.File.WriteAllText("song_list.json", jsonString);
         }
         
-        static void Main(string[] args)
+        static void Main()
         {
-            JsonRoot jsonRoot = LoadJson();
+            JsonRoot jsonRoot = null;
+            try{
+                jsonRoot = LoadJson();
+            } catch (FileNotFoundException){
+                Console.WriteLine("Error: song_list.json was not found in the program directory.");
+                System.Environment.Exit(1);
+            } catch (JsonException){
+                Console.WriteLine("Error: could not read data from song_list.json");
+                System.Environment.Exit(1);
+            }
             List<Entry> entries = jsonRoot.Entries;
 
             Console.WriteLine("\nHello! Welcome to Song Tracker.");
@@ -40,15 +67,15 @@ namespace Song_Tracker
                 {
                     case "1":
                         Entry prevEntry = entries[entries.Count - 1];
-                        Entry newEntry = add_new_entry(prevEntry);
-                        jsonRoot.Entries.Add(newEntry);
-                        WriteJson(jsonRoot);
+                        Entry newEntry = CreateNewEntry(prevEntry);
+                        SaveNewEntry(ref jsonRoot, in newEntry);
+                        Console.WriteLine("\nNew Entry has been saved.");
                         break;
                     case "2":
-                        search_favourites();
+                        SearchFavourites();
                         break;
                     case "3":
-                        info();
+                        Info();
                         break;
                     case "4":
                         System.Environment.Exit(0);
@@ -60,7 +87,12 @@ namespace Song_Tracker
             }
         }
 
-        static Entry add_new_entry(Entry prevEntry)
+        /// <summary> 
+        /// Allows user to create a new entry by modifying their previous entry
+        /// </summary>
+        /// <param name="prevEntry"> The last entry made by the user </param>
+        /// <returns> The new modified entry </returns>
+        static Entry CreateNewEntry(Entry prevEntry)
         {
             while (true)
             {
@@ -72,14 +104,14 @@ namespace Song_Tracker
                 switch(input)
                 {
                     case "1":
-                        Entry newEntry = add_new_song(prevEntry);
+                        Entry newEntry = AddNewSong(prevEntry);
                         if (newEntry != null)
                         {
                             prevEntry = newEntry;
                         }
                         continue;
                     case "2":
-                        del_song(prevEntry);
+                        DelSong(prevEntry);
                         continue;
                     case "3":
                         break;
@@ -99,7 +131,7 @@ namespace Song_Tracker
         /// <returns> 
         /// A new instance of Entry, null if user decides not to change anything.
         /// </returns>
-        static Entry add_new_song(Entry prevEntry)
+        static Entry AddNewSong(Entry prevEntry)
         {
             int pos = 0;
             if (prevEntry.Songs.Count > 0){
@@ -110,7 +142,7 @@ namespace Song_Tracker
                     try{
                         pos = int.Parse(Console.ReadLine());
                     }
-                    catch (FormatException e){
+                    catch (FormatException){
                         Console.WriteLine($"\n{pos} is not a valid entry.");
                         continue;
                     }
@@ -142,17 +174,42 @@ namespace Song_Tracker
             return newEntry;
         }
 
-        static void del_song(Entry prevEntry)
+        static Entry DelSong(Entry prevEntry)
+        {
+            return null;
+        }
+
+        /// <summary> Adds newEntry to jsonRoot and saves data to file </summary>
+        /// <param name="jsonRoot"> 
+        /// A reference to the instance of JsonRoot containing all song data
+        /// </param>
+        /// <param name="newEntry"> 
+        /// New instance of Entry that needs to be saved to file.
+        /// </param>
+        static void SaveNewEntry(ref JsonRoot jsonRoot, in Entry newEntry){
+            List<Entry> entries = jsonRoot.Entries;
+            int endIndex = entries.Count - 1; 
+            Entry endNode = entries[endIndex];
+            // Previous entries on the same day will be removed
+            while(endNode.Date == newEntry.Date){
+                entries.RemoveAt(endIndex--);
+                endNode = entries[endIndex];
+            }
+            entries.Add(newEntry);
+            try{
+                WriteJson(jsonRoot);
+            } catch (JsonException){
+                Console.WriteLine("Error: data could not be written to file.");
+                System.Environment.Exit(1);
+            }
+        }
+
+        static void SearchFavourites()
         {
 
         }
 
-        static void search_favourites()
-        {
-
-        }
-
-        static void info(){
+        static void Info(){
             Console.WriteLine("\nSong Tracker is a small command line program that helps you track your "
                              +"favourite songs throughout time.\nFrom the main menu, choose \"Add new entry\" "
                              +"to create a new favourite songs list. Each new entry will be\ngiven a time stamp "

@@ -34,22 +34,9 @@
       "Date": "01-07-2021",
       "Songs": [
         {
-          "Title": "Previous Song Title 3",
-          "Artist": "Previous Artist 3"
+          "Title": "test",
+          "Artist": "test"
         },
-        {
-          "Title": "test1",
-          "Artist": "test2"
-        },
-        {
-          "Title": "Previous Song Title 4",
-          "Artist": "Previous Artist 4"
-        }
-      ]
-    },
-    {
-      "Date": "01-07-2021",
-      "Songs": [
         {
           "Title": "Previous Song Title 3",
           "Artist": "Previous Artist 3"
@@ -57,10 +44,6 @@
         {
           "Title": "test1",
           "Artist": "test2"
-        },
-        {
-          "Title": "Previous Song Title 4",
-          "Artist": "Previous Artist 4"
         }
       ]
     }
