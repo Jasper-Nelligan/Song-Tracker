@@ -118,7 +118,7 @@ namespace Song_Tracker
                     Console.WriteLine(prevEntry.ToString());
                 }
                 else{
-                    Console.WriteLine("\nYour previous entry was empty. Try adding some songs to it "
+                    Console.WriteLine("\nYour previous entry is empty. Try adding some songs to it "
                                      +"to create a new entry!\n");
                 }
                 
@@ -244,15 +244,14 @@ namespace Song_Tracker
                 {
                     return null;
                 }
-                int count = prevEntry.Songs.Count;
-                if (pos >= count + 1)
+                if (pos < 0 || pos > 4){
+                    Console.WriteLine($"\nError: position {pos} is out of range.");
+                    continue;
+                }
+                if (pos > prevEntry.Songs.Count)
                 {
                     if (pos < 4){
-                        Console.WriteLine($"\nError: there is no song at position {pos}");
-                        continue;
-                    }
-                    else{
-                        Console.WriteLine($"\nError: position {pos} is out of range.");
+                        Console.WriteLine($"\nError: no song at position {pos}");
                         continue;
                     }
                 }
@@ -379,9 +378,10 @@ namespace Song_Tracker
         static void Info(){
             Console.WriteLine("\nSong Tracker is a small command line program that helps you track your "
                              +"favourite songs throughout time.\nFrom the main menu, choose \"Add new entry\" "
-                             +"to create a new favourite songs list. Each new entry will be\ngiven a time stamp "
-                             +"so it can be searched by date created. Choose \"Search previous favourite songs\" "
-                             +"from\nthe main menu to view past favourite song lists.");
+                             +"to create a new favourite songs list. You can add 3 favourite \nsongs to each entry. "
+                             +"Each new entry will be given a time stamp so it can be searched by date created. "
+                             +"\nChoose \"Search previous favourite songs\" from the main menu to view past "
+                             +"favourite song lists.");
         }
     }
  
