@@ -27,6 +27,9 @@ namespace Song_Tracker
             {
                 string json = r.ReadToEnd();
                 JsonRoot jsonRoot = JsonConvert.DeserializeObject<JsonRoot>(json);
+                if (jsonRoot.Entries == null){
+                    jsonRoot.Entries = new List<Entry>();
+                }
                 return jsonRoot;
             }
         }
@@ -81,7 +84,7 @@ namespace Song_Tracker
                         }
                         break;
                     case "2":
-                        SearchFavourites();
+                        SearchFavourites(in entries);
                         break;
                     case "3":
                         Info();
@@ -171,7 +174,7 @@ namespace Song_Tracker
                         pos = int.Parse(Console.ReadLine());
                     }
                     catch (FormatException){
-                        Console.WriteLine($"\n{pos} is not a valid entry.");
+                        Console.WriteLine($"\nError: Not a valid answer.");
                         continue;
                     }
                     if (pos == 4){
@@ -234,7 +237,7 @@ namespace Song_Tracker
                 }
                 catch (FormatException)
                 {
-                    Console.WriteLine($"\n{pos} is not a valid entry.");
+                    Console.WriteLine($"\nError: Not a valid answer.");
                     continue;
                 }
                 if (pos == 4)
@@ -274,12 +277,15 @@ namespace Song_Tracker
         /// </param>
         static void SaveNewEntry(ref JsonRoot jsonRoot, in Entry newEntry){
             List<Entry> entries = jsonRoot.Entries;
-            int endIndex = entries.Count - 1; 
-            Entry endNode = entries[endIndex];
-            // Previous entries on the same day will be removed
-            while(endNode.Date == newEntry.Date){
-                entries.RemoveAt(endIndex--);
-                endNode = entries[endIndex];
+            if (entries.Count > 0){
+                int endIndex = entries.Count - 1;
+                Entry endNode = entries[endIndex];
+                // Previous entries on the same day will be removed
+                while (endNode.Date == newEntry.Date)
+                {
+                    entries.RemoveAt(endIndex--);
+                    endNode = entries[endIndex];
+                }
             }
             entries.Add(newEntry);
             try{
@@ -290,9 +296,84 @@ namespace Song_Tracker
             }
         }
 
-        static void SearchFavourites()
+        static void SearchFavourites(in List<Entry> entries)
         {
+            if (entries == null || entries.Count == 0){
+                Console.WriteLine("\nError: no entries to search through.");
+                return;
+            }
 
+            int endIndex = entries.Count - 1;
+            int curIndex = endIndex;
+            int curEntryNum = 1;
+            int lastEntryNum;
+            if (entries.Count > 9){
+                lastEntryNum = 9;
+            }
+            else{
+                lastEntryNum = entries.Count;
+            }
+            int loadMoreCount = 0;
+            while(true){
+                Console.WriteLine("\nPick a date to see what your favourite songs were.");
+                Console.WriteLine("(type in a number, or 0 to go back to main menu)");
+                int i, j = (lastEntryNum < 9) ? lastEntryNum : 9, k = curIndex;
+                for(i = 0;i<j && k > 0;i++){
+                    Console.WriteLine($"{curEntryNum++}. {entries[k--].Date}");
+                }
+                if (entries.Count > 9){
+                    Console.WriteLine($"{curEntryNum++}. Load more dates");
+                }
+                Console.WriteLine("");
+
+                bool inputValid = false;
+                int pos = 0;
+                while(!inputValid){
+                    try
+                    {
+                        pos = int.Parse(Console.ReadLine());
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine($"\nError: Not a valid answer. (type in a number, or 0 to go back to main menu)\n");
+                        continue;
+                    }
+                    if (pos < 0 || pos > lastEntryNum + 1){
+                        Console.WriteLine($"\nError: Not a valid answer. (type in a number, or 0 to go back to main menu)\n");
+                        continue;
+                    }
+                    inputValid = true;
+                }
+                
+                if (pos == 0){
+                    Console.WriteLine("\nReturning back to Main Menu");
+                    return;
+                }
+
+                if (pos % 10 == 0){
+                    lastEntryNum += 10;
+                    curIndex -= 9;
+                    loadMoreCount++;
+                    continue;
+                }
+                else{
+                    Entry viewEntry = entries[endIndex - (pos - 1) + loadMoreCount];
+                    Console.WriteLine($"\nYour favourite songs from {viewEntry.Date} were:");
+                    Console.WriteLine(viewEntry.ToString());
+                    endIndex = entries.Count - 1;
+                    curIndex = endIndex;
+                    curEntryNum = 1;
+                    if (entries.Count > 9)
+                    {
+                        lastEntryNum = 9;
+                    }
+                    else
+                    {
+                        lastEntryNum = entries.Count;
+                    }
+                    loadMoreCount = 0;
+                }
+            } // end while
         }
 
         static void Info(){
